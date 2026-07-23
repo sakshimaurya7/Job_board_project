@@ -1,6 +1,6 @@
 import crypto from 'crypto';
-import User from '../models/user.model';
-import { generateToken } from '../utils/jwt';
+import User from '../models/user.model.js';
+import { generateToken } from '../utils/jwt.js';
 
 /**
  * Register a new user (Job Seeker, Recruiter, or Admin)
@@ -105,6 +105,27 @@ export const login = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Login failed.',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Logout user
+ */
+export const logout = async (req, res) => {
+  try {
+    return res
+      .status(200)
+      .cookie('token', '', { maxAge: 0, httpOnly: true, expires: new Date(0) })
+      .json({
+        success: true,
+        message: 'Logged out successfully.',
+      });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Logout failed.',
       error: error.message,
     });
   }

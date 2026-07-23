@@ -1,11 +1,11 @@
-const assert = require('assert');
-const mongoose = require('mongoose');
-const crypto = require('crypto');
-const User = require('../models/user.model');
-const Company = require('../models/company.model');
-const Job = require('../models/job.model');
-const Application = require('../models/application.model');
-const { verifyToken } = require('../utils/jwt');
+import assert from 'assert';
+import mongoose from 'mongoose';
+import crypto from 'crypto';
+import User from '../models/user.model.js';
+import Company from '../models/company.model.js';
+import Job from '../models/job.model.js';
+import Application from '../models/application.model.js';
+import { verifyToken } from '../utils/jwt.js';
 
 async function runTests() {
   console.log('--- Starting JobSphere User Model Unit Tests ---\n');
