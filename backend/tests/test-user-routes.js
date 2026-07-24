@@ -1,5 +1,4 @@
 import assert from 'assert';
-import app from '../index.js';
 import userRoutes from '../routes/user.routes.js';
 
 function runRouteTests() {

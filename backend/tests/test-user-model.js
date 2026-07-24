@@ -6,6 +6,7 @@ import Company from '../models/company.model.js';
 import Job from '../models/job.model.js';
 import Application from '../models/application.model.js';
 import { verifyToken } from '../utils/jwt.js';
+import bcrypt from 'bcrypt';
 
 async function runTests() {
   console.log('--- Starting JobSphere User Model Unit Tests ---\n');
@@ -90,7 +91,7 @@ async function runTests() {
         await User.schema.s.hooks.execPre('save', this);
       } else {
         const salt = await bcrypt.genSalt(10);
-        this.password = await bcrypt.hash(this.password, salt);
+        this.password = bcrypt.hash(this.password, salt);
       }
       return this;
     };
