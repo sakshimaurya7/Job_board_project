@@ -37,8 +37,23 @@ const companySchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: {
+      virtuals: true,
+      transform: function (doc, ret) {
+        delete ret.__v;
+        return ret;
+      },
+    },
+    toObject: { virtuals: true },
   }
 );
+
+// Virtual relationship to Jobs posted under this Company
+companySchema.virtual('jobs', {
+  ref: 'Job',
+  localField: '_id',
+  foreignField: 'company',
+});
 
 const Company = mongoose.model('Company', companySchema);
 

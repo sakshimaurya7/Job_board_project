@@ -3,6 +3,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import userRoutes from './routes/user.routes.js';
+import companyRoutes from './routes/company.routes.js';
+import jobRoutes from './routes/job.routes.js';
+import applicationRoutes from './routes/application.routes.js';
 
 dotenv.config();
 
@@ -24,8 +27,11 @@ app.get('/api/v1/health', (req, res) => {
   });
 });
 
-// User & Auth Routes
+// API Routes
 app.use('/api/v1/user', userRoutes);
+app.use('/api/v1/company', companyRoutes);
+app.use('/api/v1/job', jobRoutes);
+app.use('/api/v1/application', applicationRoutes);
 
 // 404 Route Handler
 app.use((req, res) => {

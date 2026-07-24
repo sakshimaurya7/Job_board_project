@@ -3,7 +3,7 @@ import User from '../models/user.model.js';
 /**
  * Get current authenticated user profile
  */
-export const getProfile = async (req, res) => {
+const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).populate('profile.company');
     if (!user) {
@@ -29,7 +29,7 @@ export const getProfile = async (req, res) => {
 /**
  * Update user profile (bio, skills, location, phone, photo, resume, company)
  */
-export const updateProfile = async (req, res) => {
+const updateProfile = async (req, res) => {
   try {
     const { fullname, phoneNumber, bio, skills, location, profilePhoto, resume, resumeOriginalName, companyId } = req.body;
     const user = await User.findById(req.user.id);
@@ -81,7 +81,7 @@ export const updateProfile = async (req, res) => {
 /**
  * Admin action: Update user active or verification status
  */
-export const updateUserStatus = async (req, res) => {
+const updateUserStatus = async (req, res) => {
   try {
     const { userId } = req.params;
     const { isActive, isVerified, role } = req.body;
@@ -113,3 +113,5 @@ export const updateUserStatus = async (req, res) => {
     });
   }
 };
+
+export { getProfile, updateProfile, updateUserStatus }

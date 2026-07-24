@@ -183,7 +183,7 @@ userSchema.methods.matchPassword = async function (candidatePassword) {
  * @returns {string} Signed JWT token
  */
 userSchema.methods.generateAuthToken = function (expiresIn = '1d') {
-  const secret = process.env.JWT_SECRET || 'jobsphere_default_jwt_secret_key_2026';
+  const secret = 'jobsphere_default_jwt_secret_key_2026';
   return jwt.sign(
     {
       id: this._id,

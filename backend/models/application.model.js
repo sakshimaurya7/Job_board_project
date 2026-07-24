@@ -22,8 +22,19 @@ const applicationSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: {
+      virtuals: true,
+      transform: function (doc, ret) {
+        delete ret.__v;
+        return ret;
+      },
+    },
+    toObject: { virtuals: true },
   }
 );
+
+// Prevent duplicate application for the same job by the same user
+applicationSchema.index({ job: 1, applicant: 1 }, { unique: true });
 
 const Application = mongoose.model('Application', applicationSchema);
 
