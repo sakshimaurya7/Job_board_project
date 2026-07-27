@@ -43,12 +43,11 @@ app.use((req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-if (process.env.NODE_ENV !== 'test') {
-  connectDB().then(() => {
-    app.listen(PORT, () => {
-      console.log(`🚀 JobSphere Server running on port ${PORT}`);
-    });
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`🚀 JobSphere Server running on port ${PORT}`);
   });
-}
+});
+
 
 export default app;
