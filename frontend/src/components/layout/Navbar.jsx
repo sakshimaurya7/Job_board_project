@@ -1,0 +1,121 @@
+import React, { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Briefcase, Menu, X, ChevronRight } from "lucide-react";
+import { Button } from "../ui/button";
+
+export function Navbar() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
+
+  const navLinks = [
+    { name: "Home", path: "/" },
+    { name: "Find Jobs", path: "/jobs" },
+    { name: "Companies", path: "/companies" },
+    { name: "About", path: "/about" },
+    { name: "Contact", path: "/contact" },
+  ];
+
+  const isActive = (path) => {
+    if (path === "/" && location.pathname === "/") return true;
+    if (path !== "/" && location.pathname.startsWith(path)) return true;
+    return false;
+  };
+
+  return (
+    <header className="sticky top-0 z-50 h-[72px] bg-surface border-b border-border transition-all duration-300">
+      <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
+        {/* Brand Logo */}
+        <Link to="/" className="flex items-center space-x-2.5 group">
+          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-soft transition-transform group-hover:scale-105">
+            <Briefcase className="w-5 h-5 fill-current" />
+          </div>
+          <span className="text-2xl font-black text-text tracking-tight">
+            Job<span className="text-primary">Hub</span>
+          </span>
+        </Link>
+
+        {/* Desktop Navigation Links */}
+        <nav className="hidden md:flex items-center space-x-8">
+          {navLinks.map((link) => {
+            const active = isActive(link.path);
+            return (
+              <Link
+                key={link.name}
+                to={link.path}
+                className={`text-base font-semibold transition-colors duration-200 relative py-1 ${
+                  active
+                    ? "text-primary font-bold"
+                    : "text-text-secondary hover:text-primary"
+                }`}
+              >
+                {link.name}
+                {active && (
+                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-full" />
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Action Buttons (Login & Sign Up) */}
+        <div className="hidden md:flex items-center space-x-4">
+          <Button variant="secondary" className="h-11 px-5">
+            Login
+          </Button>
+          <Button variant="primary" className="h-11 px-6">
+            Sign Up
+          </Button>
+        </div>
+
+        {/* Mobile Hamburger Toggle */}
+        <div className="md:hidden">
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 rounded-xl border border-border text-text hover:bg-section focus:outline-none"
+            aria-label="Toggle Navigation Menu"
+          >
+            {mobileMenuOpen ? (
+              <X className="w-6 h-6 text-primary" />
+            ) : (
+              <Menu className="w-6 h-6 text-text" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Drawer Navigation Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed inset-x-0 top-[72px] bg-surface border-b border-border shadow-xl z-40 p-6 space-y-4 animate-in slide-in-from-top duration-300">
+          <nav className="flex flex-col space-y-3">
+            {navLinks.map((link) => {
+              const active = isActive(link.path);
+              return (
+                <Link
+                  key={link.name}
+                  to={link.path}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center justify-between p-3 rounded-xl font-semibold text-base transition-colors ${
+                    active
+                      ? "bg-section text-primary"
+                      : "text-text hover:bg-section"
+                  }`}
+                >
+                  <span>{link.name}</span>
+                  <ChevronRight className="w-4 h-4 text-text-secondary" />
+                </Link>
+              );
+            })}
+          </nav>
+          <div className="pt-4 border-t border-border flex flex-col space-y-3">
+            <Button variant="secondary" className="w-full justify-center">
+              Login
+            </Button>
+            <Button variant="primary" className="w-full justify-center">
+              Sign Up
+            </Button>
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}
