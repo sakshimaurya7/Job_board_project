@@ -1,6 +1,11 @@
 import crypto from 'crypto';
 import User from '../models/user.model.js';
 import { generateToken } from '../utils/jwt.js';
+import {
+  hashPassword,
+  comparePassword,
+  createResetPasswordToken,
+} from '../utils/auth.js';
 
 /**
  * Register a new user (Job Seeker, Recruiter, or Admin)
@@ -24,15 +29,17 @@ export const register = async (req, res) => {
       });
     }
 
+    const hashedPassword = await hashPassword(password);
+
     const user = await User.create({
       fullname,
       email,
-      password,
+      password: hashedPassword,
       phoneNumber,
       role: role || 'jobseeker',
     });
 
-    const token = user.generateAuthToken();
+    const token = generateToken(user);
 
     res.status(201).json({
       success: true,
@@ -71,7 +78,7 @@ export const login = async (req, res) => {
       });
     }
 
-    const isMatch = await user.comparePassword(password);
+    const isMatch = await comparePassword(password, user.password);
     if (!isMatch) {
       return res.status(400).json({
         success: false,
@@ -93,7 +100,7 @@ export const login = async (req, res) => {
       });
     }
 
-    const token = user.generateAuthToken();
+    const token = generateToken(user);
 
     res.status(200).json({
       success: true,
@@ -146,13 +153,15 @@ export const forgotPassword = async (req, res) => {
       });
     }
 
-    const resetToken = user.getResetPasswordToken();
+    const { plainToken, hashedToken, expireTime } = createResetPasswordToken();
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpire = expireTime;
     await user.save({ validateBeforeSave: false });
 
     res.status(200).json({
       success: true,
       message: 'Password reset token generated successfully.',
-      resetToken,
+      resetToken: plainToken,
     });
   } catch (error) {
     res.status(500).json({
@@ -195,12 +204,12 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    user.password = newPassword;
+    user.password = await hashPassword(newPassword);
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
     await user.save();
 
-    const authToken = user.generateAuthToken();
+    const authToken = generateToken(user);
 
     res.status(200).json({
       success: true,

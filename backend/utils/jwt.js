@@ -1,23 +1,23 @@
 import jwt from 'jsonwebtoken';
 
-// const JWT_SECRET = process.env.JWT_SECRET || 'jobsphere_default_jwt_secret_key_2026';
-const JWT_SECRET = 'jobsphere_default_jwt_secret_key_2026'
+const getSecret = () => process.env.JWT_SECRET || 'jobsphere_super_secret_jwt_key_2026_production_ready';
+const getExpiresIn = () => process.env.JWT_EXPIRES_IN || '1d';
 
 /**
  * Generate a JWT token for a given user payload
- * @param {Object} user - User object containing _id, email, and role
- * @param {string} [expiresIn='1d'] - Token expiration duration
+ * @param {Object} user - User object containing _id or id, email, and role
+ * @param {string} [expiresIn] - Optional override for token expiration duration
  * @returns {string} Signed JWT token
  */
-const generateToken = (user, expiresIn = '1d') => {
+const generateToken = (user, expiresIn) => {
   return jwt.sign(
     {
       id: user._id || user.id,
       email: user.email,
       role: user.role,
     },
-    JWT_SECRET,
-    { expiresIn }
+    getSecret(),
+    { expiresIn: expiresIn || getExpiresIn() }
   );
 };
 
@@ -27,7 +27,7 @@ const generateToken = (user, expiresIn = '1d') => {
  * @returns {Object} Decoded payload
  */
 const verifyToken = (token) => {
-  return jwt.verify(token, JWT_SECRET);
+  return jwt.verify(token, getSecret());
 };
 
 export {

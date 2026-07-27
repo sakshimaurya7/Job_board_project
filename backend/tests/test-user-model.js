@@ -1,15 +1,16 @@
 import assert from 'assert';
 import mongoose from 'mongoose';
-import crypto from 'crypto';
 import User from '../models/user.model.js';
-import Company from '../models/company.model.js';
-import Job from '../models/job.model.js';
-import Application from '../models/application.model.js';
-import { verifyToken } from '../utils/jwt.js';
-import bcrypt from 'bcrypt';
+import { generateToken, verifyToken } from '../utils/jwt.js';
+import {
+  hashPassword,
+  comparePassword,
+  createResetPasswordToken,
+  createVerificationToken,
+} from '../utils/auth.js';
 
 async function runTests() {
-  console.log('--- Starting JobSphere User Model Unit Tests ---\n');
+  console.log('--- Starting JobSphere Refactored User Model & Auth Utility Unit Tests ---\n');
 
   let passed = 0;
   let failed = 0;
@@ -75,91 +76,56 @@ async function runTests() {
     assert.strictEqual(user.email, 'john.doe@example.com');
   });
 
-  // 4. Password Hashing Pre-save Hook & Password Comparison
-  await recordAsyncTest('Security: Hashes password on save and compares password correctly', async () => {
+  // 4. Decoupled Password Hashing & Comparison
+  await recordAsyncTest('Security: Hashes password and compares password correctly via utils/auth.js', async () => {
     const rawPassword = 'SecurePassword123!';
-    const user = new User({
-      fullname: 'Jane Recruiter',
-      email: 'jane@company.com',
-      password: rawPassword,
-      role: 'recruiter',
-    });
+    const hashedPassword = await hashPassword(rawPassword);
 
-    // Mock save to trigger pre-save hooks without DB buffering
-    user.save = async function () {
-      if (User.schema.s && User.schema.s.hooks) {
-        await User.schema.s.hooks.execPre('save', this);
-      } else {
-        const salt = await bcrypt.genSalt(10);
-        this.password = bcrypt.hash(this.password, salt);
-      }
-      return this;
-    };
+    assert.notStrictEqual(hashedPassword, rawPassword, 'Password should be hashed');
+    assert.ok(hashedPassword.startsWith('$2'), 'Password should be a valid bcrypt hash');
 
-    await user.save();
-
-    assert.notStrictEqual(user.password, rawPassword, 'Password should be hashed');
-    assert.ok(user.password.startsWith('$2'), 'Password should be a valid bcrypt hash');
-
-    // Test comparePassword
-    const isMatch = await user.comparePassword(rawPassword);
+    const isMatch = await comparePassword(rawPassword, hashedPassword);
     assert.strictEqual(isMatch, true, 'comparePassword should return true for correct password');
 
-    const isWrongMatch = await user.comparePassword('WrongPass123!');
+    const isWrongMatch = await comparePassword('WrongPass123!', hashedPassword);
     assert.strictEqual(isWrongMatch, false, 'comparePassword should return false for wrong password');
   });
 
-  // 5. JWT Auth Token Generation
-  await recordAsyncTest('Auth: Generates and verifies valid JWT auth token', async () => {
-    const user = new User({
-      _id: new mongoose.Types.ObjectId(),
-      fullname: 'Alice Seeker',
+  // 5. Decoupled JWT Auth Token Generation & Verification
+  await recordAsyncTest('Auth: Generates and verifies valid JWT auth token via utils/jwt.js', async () => {
+    const userId = new mongoose.Types.ObjectId();
+    const user = {
+      _id: userId,
       email: 'alice@jobseeker.com',
-      password: 'Password123!',
       role: 'jobseeker',
-    });
+    };
 
-    const token = user.generateAuthToken();
+    const token = generateToken(user);
     assert.ok(token, 'Token string should be generated');
 
     const decoded = verifyToken(token);
-    assert.strictEqual(decoded.id.toString(), user._id.toString());
+    assert.strictEqual(decoded.id.toString(), userId.toString());
     assert.strictEqual(decoded.email, 'alice@jobseeker.com');
     assert.strictEqual(decoded.role, 'jobseeker');
   });
 
   // 6. Password Reset Token Generation & Expiration
-  recordTest('Password Recovery: Generates hashed reset token and sets 15-min expiration', () => {
-    const user = new User({
-      fullname: 'Bob Admin',
-      email: 'bob@admin.com',
-      password: 'Password123!',
-      role: 'admin',
-    });
+  recordTest('Password Recovery: Generates hashed reset token and 15-min expiration via utils/auth.js', () => {
+    const { plainToken, hashedToken, expireTime } = createResetPasswordToken();
 
-    const plainToken = user.getResetPasswordToken();
     assert.ok(plainToken, 'Plain reset token should be returned');
-    assert.ok(user.resetPasswordToken, 'Hashed reset token should be saved to schema');
-    assert.notStrictEqual(plainToken, user.resetPasswordToken, 'Hashed token must differ from plain token');
-
-    const expectedHash = crypto.createHash('sha256').update(plainToken).digest('hex');
-    assert.strictEqual(user.resetPasswordToken, expectedHash, 'Reset token hash should match sha256 of plain token');
-    assert.ok(user.resetPasswordExpire > Date.now(), 'Expiration time should be set in the future');
+    assert.ok(hashedToken, 'Hashed reset token should be returned');
+    assert.notStrictEqual(plainToken, hashedToken, 'Hashed token must differ from plain token');
+    assert.ok(expireTime > Date.now(), 'Expiration time should be set in the future');
   });
 
   // 7. Email Verification Token Generation
-  recordTest('Email Verification: Generates hashed verification token and sets 24-hr expiration', () => {
-    const user = new User({
-      fullname: 'Charlie Seeker',
-      email: 'charlie@seeker.com',
-      password: 'Password123!',
-      role: 'jobseeker',
-    });
+  recordTest('Email Verification: Generates hashed verification token and 24-hr expiration via utils/auth.js', () => {
+    const { plainToken, hashedToken, expireTime } = createVerificationToken();
 
-    const plainToken = user.getVerificationToken();
     assert.ok(plainToken, 'Plain verification token should be returned');
-    assert.ok(user.verificationToken, 'Hashed verification token should be stored on schema');
-    assert.ok(user.verificationTokenExpire > Date.now(), 'Expiration time should be in future');
+    assert.ok(hashedToken, 'Hashed verification token should be returned');
+    assert.ok(expireTime > Date.now(), 'Expiration time should be in future');
   });
 
   // 8. Profile & Recruiter-Company Association

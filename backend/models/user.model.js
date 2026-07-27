@@ -1,7 +1,4 @@
 import mongoose from 'mongoose';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -145,93 +142,6 @@ userSchema.virtual('postedJobs', {
   localField: '_id',
   foreignField: 'created_by',
 });
-
-/**
- * Pre-save middleware to hash password if modified
- */
-userSchema.pre('save', async function () {
-  if (!this.isModified('password')) {
-    return;
-  }
-
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-});
-
-/**
- * Instance method to compare candidate password with hashed password
- * @param {string} candidatePassword
- * @returns {Promise<boolean>}
- */
-userSchema.methods.comparePassword = async function (candidatePassword) {
-  if (!this.password) {
-    throw new Error('Password field not selected in query result');
-  }
-  return await bcrypt.compare(candidatePassword, this.password);
-};
-
-/**
- * Alias method matchPassword for flexible authorization controller calls
- */
-userSchema.methods.matchPassword = async function (candidatePassword) {
-  return await this.comparePassword(candidatePassword);
-};
-
-/**
- * Generate JWT Authentication Token
- * @param {string} [expiresIn='1d']
- * @returns {string} Signed JWT token
- */
-userSchema.methods.generateAuthToken = function (expiresIn = '1d') {
-  const secret = 'jobsphere_default_jwt_secret_key_2026';
-  return jwt.sign(
-    {
-      id: this._id,
-      email: this.email,
-      role: this.role,
-    },
-    secret,
-    { expiresIn }
-  );
-};
-
-/**
- * Generate and hash password reset token
- * @returns {string} Plain reset token (to send via email)
- */
-userSchema.methods.getResetPasswordToken = function () {
-  const resetToken = crypto.randomBytes(32).toString('hex');
-
-  // Hash token and set to resetPasswordToken field
-  this.resetPasswordToken = crypto
-    .createHash('sha256')
-    .update(resetToken)
-    .digest('hex');
-
-  // Set expire time (15 minutes)
-  this.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
-
-  return resetToken;
-};
-
-/**
- * Generate and hash email verification token
- * @returns {string} Plain verification token (to send via email)
- */
-userSchema.methods.getVerificationToken = function () {
-  const verificationToken = crypto.randomBytes(32).toString('hex');
-
-  // Hash token and set to verificationToken field
-  this.verificationToken = crypto
-    .createHash('sha256')
-    .update(verificationToken)
-    .digest('hex');
-
-  // Set expire time (24 hours)
-  this.verificationTokenExpire = Date.now() + 24 * 60 * 60 * 1000;
-
-  return verificationToken;
-};
 
 const User = mongoose.model('User', userSchema);
 
