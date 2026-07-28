@@ -31,7 +31,7 @@ export function JobCard({
         <div className="flex items-start justify-between gap-4 mb-4">
           <div className="flex items-center space-x-3.5">
             <div
-              className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg shadow-sm ${logoBg}`}
+              className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg shadow-sm ${logoBg}`}
             >
               {logoText}
             </div>
@@ -49,16 +49,14 @@ export function JobCard({
             type="button"
             aria-label="Bookmark Job"
             onClick={toggleBookmark}
-            className={`p-2 rounded-xl border transition-all duration-200 ${
-              bookmarked
+            className={`p-2 rounded-xl border transition-all duration-200 ${bookmarked
                 ? "bg-primary/10 border-primary text-primary"
                 : "border-border text-text-secondary hover:text-primary hover:border-primary/40 bg-surface"
-            }`}
+              }`}
           >
             <Bookmark
-              className={`w-4 h-4 transition-transform duration-200 active:scale-125 ${
-                bookmarked ? "fill-primary" : ""
-              }`}
+              className={`w-4 h-4 transition-transform duration-200 active:scale-125 ${bookmarked ? "fill-primary" : ""
+                }`}
             />
           </button>
         </div>

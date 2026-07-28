@@ -14,6 +14,8 @@ export function HeroIllustration() {
         xmlns="http://www.w3.org/2000/svg"
         className="w-full h-auto drop-shadow-md"
       >
+
+        {/* <defs>: Holds reusable visual assets : Linear gradient for soft orange color transitions.*/}
         <defs>
           <linearGradient id="orangeGrad" x1="0" y1="0" x2="600" y2="500" gradientUnits="userSpaceOnUse">
             <stop stopColor="#FFF7ED" />
@@ -33,9 +35,10 @@ export function HeroIllustration() {
         </defs>
 
         {/* Outer Frame Backing */}
+        {/*Draws a subtle light-orange ellipse at the bottom to ground the entire illustration with a floor shadow. */}
         <ellipse cx="300" cy="450" rx="250" ry="30" fill="#FED7AA" opacity="0.4" />
 
-        {/* 1. Large Candidate Resume Profile Card (Background Panel) */}
+        {/* 1. Large Candidate Resume / Profile Card (Background Panel) */}
         <rect
           x="320"
           y="60"

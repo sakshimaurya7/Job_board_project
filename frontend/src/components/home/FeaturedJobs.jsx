@@ -92,11 +92,10 @@ export function FeaturedJobs({ onSelectJob }) {
             <button
               key={tab}
               onClick={() => setActiveFilter(tab)}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
-                activeFilter === tab
-                  ? "bg-primary text-white shadow-soft"
-                  : "bg-surface border border-border text-text-secondary hover:text-text hover:bg-section"
-              }`}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 ${activeFilter === tab
+                ? "bg-primary text-white shadow-soft"
+                : "bg-surface border border-border text-text-secondary hover:text-text hover:bg-section"
+                }`}
             >
               {tab}
             </button>
@@ -104,7 +103,7 @@ export function FeaturedJobs({ onSelectJob }) {
         </div>
 
         {/* 4 Responsive Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredJobs.map((job) => (
             <JobCard
               key={job.id}
