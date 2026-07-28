@@ -1,11 +1,14 @@
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Briefcase, Menu, X, ChevronRight } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Briefcase, Menu, X, ChevronRight, LogOut, User as UserIcon } from "lucide-react";
 import { Button } from "../ui/button";
+import { useAuth } from "../../hooks/useAuth";
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuth();
 
   const navLinks = [
     { name: "Home", path: "/" },
@@ -19,6 +22,11 @@ export function Navbar() {
     if (path === "/" && location.pathname === "/") return true;
     if (path !== "/" && location.pathname.startsWith(path)) return true;
     return false;
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
   };
 
   return (
@@ -57,14 +65,42 @@ export function Navbar() {
           })}
         </nav>
 
-        {/* Action Buttons (Login & Sign Up) */}
+        {/* Action Buttons (Login / Register or User Profile) */}
         <div className="hidden md:flex items-center space-x-4">
-          <Button variant="secondary" className="h-11 px-5">
-            Login
-          </Button>
-          <Button variant="primary" className="h-11 px-6">
-            Sign Up
-          </Button>
+          {isAuthenticated && user ? (
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2 bg-section border border-border px-3.5 py-1.5 rounded-xl text-sm font-semibold text-text">
+                <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold">
+                  {user.fullname ? user.fullname.charAt(0).toUpperCase() : <UserIcon className="w-4 h-4" />}
+                </div>
+                <span>{user.fullname || "User"}</span>
+                <span className="text-[10px] uppercase font-bold bg-primary text-white px-2 py-0.5 rounded-md ml-1">
+                  {user.role === "recruiter" ? "Employer" : "Seeker"}
+                </span>
+              </div>
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="h-10 px-3.5 text-sm font-semibold gap-1.5"
+              >
+                <LogOut className="w-4 h-4 text-text-secondary" />
+                Logout
+              </Button>
+            </div>
+          ) : (
+            <>
+              <Link to="/login">
+                <Button variant="secondary" className="h-11 px-5">
+                  Login
+                </Button>
+              </Link>
+              <Link to="/register">
+                <Button variant="primary" className="h-11 px-6">
+                  Sign Up
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile Hamburger Toggle */}
@@ -107,12 +143,43 @@ export function Navbar() {
             })}
           </nav>
           <div className="pt-4 border-t border-border flex flex-col space-y-3">
-            <Button variant="secondary" className="w-full justify-center">
-              Login
-            </Button>
-            <Button variant="primary" className="w-full justify-center">
-              Sign Up
-            </Button>
+            {isAuthenticated && user ? (
+              <div className="space-y-3">
+                <div className="p-3 bg-section rounded-xl border border-border flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <UserIcon className="w-5 h-5 text-primary" />
+                    <span className="font-semibold text-text">{user.fullname}</span>
+                  </div>
+                  <span className="text-xs uppercase font-bold bg-primary text-white px-2 py-0.5 rounded-md">
+                    {user.role}
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="w-full justify-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="secondary" className="w-full justify-center">
+                    Login
+                  </Button>
+                </Link>
+                <Link to="/register" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="primary" className="w-full justify-center">
+                    Sign Up
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

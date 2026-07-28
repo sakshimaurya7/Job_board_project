@@ -89,7 +89,7 @@ export const login = async (req, res) => {
     if (role && user.role !== role) {
       return res.status(400).json({
         success: false,
-        message: `Account role does not match specified role '${role}'. Account is '${user.role}'.`,
+        message: `The selected role does not match this account.`,
       });
     }
 
