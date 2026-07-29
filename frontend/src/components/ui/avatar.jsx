@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cn } from "../../lib/utils";
 
-const Avatar = React.forwardRef(({ className, src, alt = "", fallback = "JS", size = "md", ...props }, ref) => {
+const Avatar = React.forwardRef(({ className, src, alt = "", fallback = "JS", size = "md", children, ...props }, ref) => {
   const [hasError, setHasError] = React.useState(false);
 
   const sizeClasses = {
@@ -31,7 +31,9 @@ const Avatar = React.forwardRef(({ className, src, alt = "", fallback = "JS", si
       )}
       {...props}
     >
-      {src && !hasError ? (
+      {children ? (
+        children
+      ) : src && !hasError ? (
         <img
           src={src}
           alt={alt}
@@ -44,7 +46,34 @@ const Avatar = React.forwardRef(({ className, src, alt = "", fallback = "JS", si
     </div>
   );
 });
-
 Avatar.displayName = "Avatar";
 
-export { Avatar };
+const AvatarImage = React.forwardRef(({ className, src, alt = "", ...props }, ref) => {
+  const [hasError, setHasError] = React.useState(false);
+  if (!src || hasError) return null;
+
+  return (
+    <img
+      ref={ref}
+      src={src}
+      alt={alt}
+      onError={() => setHasError(true)}
+      className={cn("aspect-square h-full w-full object-cover", className)}
+      {...props}
+    />
+  );
+});
+AvatarImage.displayName = "AvatarImage";
+
+const AvatarFallback = React.forwardRef(({ className, children, ...props }, ref) => (
+  <span
+    ref={ref}
+    className={cn("flex h-full w-full items-center justify-center bg-section text-primary select-none font-bold", className)}
+    {...props}
+  >
+    {children}
+  </span>
+));
+AvatarFallback.displayName = "AvatarFallback";
+
+export { Avatar, AvatarImage, AvatarFallback };

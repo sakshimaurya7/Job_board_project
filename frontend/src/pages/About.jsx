@@ -1,21 +1,60 @@
-import React from "react";
-import { User, ArrowRight } from "lucide-react";
-import { Button } from "../components/ui/button";
+import React, { useEffect } from "react";
+import { HeroSection } from "../components/about/HeroSection";
+import { StorySection } from "../components/about/StorySection";
+import { MissionVisionSection } from "../components/about/MissionVisionSection";
+import { ValuesGrid } from "../components/about/ValuesGrid";
+import { FeaturesGrid } from "../components/about/FeaturesGrid";
+import { StatisticsSection } from "../components/about/StatisticsSection";
+import { HowItWorks } from "../components/about/HowItWorks";
+import { BenefitsSection } from "../components/about/BenefitsSection";
+import { PlatformFeatures } from "../components/about/PlatformFeatures";
+import { TestimonialsSection } from "../components/about/TestimonialsSection";
+import { FAQSection } from "../components/about/FAQSection";
+import { CTASection } from "../components/about/CTASection";
 
 export default function About() {
+  useEffect(() => {
+    document.title = "About Us | Modern Job Board Platform";
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
-    <div className="min-h-[70vh] flex flex-col items-center justify-center text-center px-6 py-20 bg-background">
-      <div className="w-16 h-16 rounded-2xl bg-section flex items-center justify-center text-primary mb-6 shadow-soft">
-        <User className="w-8 h-8" />
-      </div>
-      <h1 className="text-3xl font-extrabold text-text mb-3">About JobHub</h1>
-      <p className="text-text-secondary text-base max-w-md leading-relaxed mb-8">
-        We are building the future of hiring and tech career discovery.
-      </p>
-      <Button variant="primary" onClick={() => window.history.back()} className="space-x-2">
-        <span>Go Back</span>
-        <ArrowRight className="w-4 h-4" />
-      </Button>
-    </div>
+    <main className="min-h-screen bg-background text-text selection:bg-accent selection:text-text space-y-4">
+      {/* 1. Hero Section */}
+      <HeroSection />
+
+      {/* 2. Our Story */}
+      <StorySection />
+
+      {/* 3. Mission & Vision */}
+      <MissionVisionSection />
+
+      {/* 4. Core Values */}
+      <ValuesGrid />
+
+      {/* 5. Why Choose Our Platform */}
+      <FeaturesGrid />
+
+      {/* 6. Platform Statistics */}
+      <StatisticsSection />
+
+      {/* 7. How It Works */}
+      <HowItWorks />
+
+      {/* 8. Benefits */}
+      <BenefitsSection />
+
+      {/* 9. Meet the Platform */}
+      <PlatformFeatures />
+
+      {/* 10. Testimonials */}
+      <TestimonialsSection />
+
+      {/* 11. Frequently Asked Questions */}
+      <FAQSection />
+
+      {/* 12. Call To Action */}
+      <CTASection />
+    </main>
   );
 }
