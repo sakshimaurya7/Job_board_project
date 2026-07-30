@@ -23,7 +23,7 @@ export function Navbar() {
     if (!isAuthenticated || !user) return null;
     const role = (user.role || "").toLowerCase();
     if (role === "recruiter" || role === "admin") {
-      return { name: "Manage Applicants", path: "/manage-applications", icon: LayoutDashboard };
+      return { name: "Recruiter Dashboard", path: "/recruiter/dashboard", icon: LayoutDashboard };
     }
     return { name: "My Applications", path: "/applications", icon: ClipboardList };
   };

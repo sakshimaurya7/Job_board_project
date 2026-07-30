@@ -1,5 +1,6 @@
 import Job from '../models/job.model.js';
 import Company from '../models/company.model.js';
+import Application from '../models/application.model.js';
 
 /**
  * Post a new Job listing (Recruiter / Admin)
@@ -297,4 +298,80 @@ const deleteJob = async (req, res) => {
   }
 };
 
-export { postJob, getAllJobs, getJobById, getAdminJobs, updateJob, deleteJob }
+/**
+ * Get recruiter dashboard statistics & summary analytics
+ */
+const getRecruiterStats = async (req, res) => {
+  try {
+    const userId = req.user._id || req.user.id;
+
+    // Get jobs created by recruiter
+    const jobs = await Job.find({ created_by: userId })
+      .populate('company', 'name logo')
+      .sort({ createdAt: -1 });
+
+    const totalJobs = jobs.length;
+    const activeJobs = jobs.filter((j) => (j.position || 0) > 0).length;
+    const closedJobs = totalJobs - activeJobs;
+
+    const jobIds = jobs.map((j) => j._id);
+
+    // Get applications for recruiter's jobs
+    const applications = await Application.find({ job: { $in: jobIds } })
+      .populate({
+        path: 'applicant',
+        select: 'fullname email phoneNumber profile',
+      })
+      .populate({
+        path: 'job',
+        select: 'title company position location salary jobType',
+        populate: { path: 'company', select: 'name logo' },
+      })
+      .sort({ createdAt: -1 });
+
+    const totalApplicants = applications.length;
+
+    let pending = 0;
+    let reviewed = 0;
+    let interview = 0;
+    let selected = 0;
+    let rejected = 0;
+
+    applications.forEach((app) => {
+      const st = (app.status || 'pending').toLowerCase();
+      if (st === 'pending') pending++;
+      else if (st === 'reviewed') reviewed++;
+      else if (st === 'interview') interview++;
+      else if (st === 'accepted' || st === 'selected') selected++;
+      else if (st === 'rejected') rejected++;
+    });
+
+    const recentJobs = jobs.slice(0, 5);
+    const recentApplications = applications.slice(0, 5);
+
+    return res.status(200).json({
+      success: true,
+      stats: {
+        totalJobs,
+        activeJobs,
+        closedJobs,
+        totalApplicants,
+        pending,
+        reviewed,
+        interview,
+        selected,
+        rejected,
+      },
+      recentJobs,
+      recentApplications,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve recruiter stats.',
+      error: error.message,
+    });
+  }
+};
+
+export { postJob, getAllJobs, getJobById, getAdminJobs, updateJob, deleteJob, getRecruiterStats };

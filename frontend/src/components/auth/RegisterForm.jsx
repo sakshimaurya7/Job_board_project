@@ -46,9 +46,14 @@ export function RegisterForm() {
       const response = await registerUser(data);
       if (response.success) {
         toast.success(
-          response.message || "Account created successfully! Please log in."
+          response.message || "Account created successfully!"
         );
-        navigate("/login");
+        const registeredRole = (data.role || "").toLowerCase();
+        if (registeredRole === "recruiter" || registeredRole === "admin") {
+          navigate("/company/setup");
+        } else {
+          navigate("/");
+        }
       }
     } catch (err) {
       setErrorMessage(

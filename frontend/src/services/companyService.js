@@ -42,6 +42,44 @@ export const companyService = {
   },
 
   /**
+   * Register a new company for recruiter
+   * @param {Object} companyData 
+   */
+  registerCompany: async (companyData) => {
+    const response = await companyApi.post("/company/register", companyData);
+    return response.data;
+  },
+
+  /**
+   * Update company information by ID
+   * @param {string} id 
+   * @param {Object} companyData 
+   */
+  updateCompany: async (id, companyData) => {
+    const response = await companyApi.put(`/company/update/${id}`, companyData);
+    return response.data;
+  },
+
+  /**
+   * Delete company by ID
+   * @param {string} id 
+   */
+  deleteCompany: async (id) => {
+    const response = await companyApi.delete(`/company/delete/${id}`);
+    return response.data;
+  },
+
+  /**
+   * Fetch companies belonging to logged in recruiter
+   */
+  getMyCompany: async () => {
+    const response = await companyApi.get("/company/get", {
+      params: { myCompanies: "true" },
+    });
+    return response.data;
+  },
+
+  /**
    * Search companies helper
    * @param {string} query 
    */

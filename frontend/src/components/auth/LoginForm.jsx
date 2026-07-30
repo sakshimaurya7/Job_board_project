@@ -45,7 +45,19 @@ export function LoginForm() {
       const response = await login(data);
       if (response.success) {
         toast.success(response.message || "Logged in successfully!");
-        navigate("/");
+        const loggedInUser = response.user;
+        const role = (loggedInUser?.role || "").toLowerCase();
+        
+        if (role === "recruiter" || role === "admin") {
+          const hasCompany = loggedInUser?.profile?.company;
+          if (hasCompany) {
+            navigate("/recruiter/dashboard");
+          } else {
+            navigate("/company/setup");
+          }
+        } else {
+          navigate("/");
+        }
       }
     } catch (err) {
       setErrorMessage(err.message || "Failed to sign in. Please verify your credentials.");

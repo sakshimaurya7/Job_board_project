@@ -57,6 +57,50 @@ export const jobService = {
     const response = await jobApi.get("/application/get");
     return response.data;
   },
+
+  /**
+   * Post a new job listing (Recruiter / Admin)
+   * @param {Object} jobData 
+   */
+  postJob: async (jobData) => {
+    const response = await jobApi.post("/job/post", jobData);
+    return response.data;
+  },
+
+  /**
+   * Update existing job listing by ID
+   * @param {string} id 
+   * @param {Object} jobData 
+   */
+  updateJob: async (id, jobData) => {
+    const response = await jobApi.put(`/job/update/${id}`, jobData);
+    return response.data;
+  },
+
+  /**
+   * Delete job listing by ID
+   * @param {string} id 
+   */
+  deleteJob: async (id) => {
+    const response = await jobApi.delete(`/job/delete/${id}`);
+    return response.data;
+  },
+
+  /**
+   * Fetch jobs created by the logged in recruiter / admin
+   */
+  getRecruiterJobs: async () => {
+    const response = await jobApi.get("/job/getadminjobs");
+    return response.data;
+  },
+
+  /**
+   * Fetch recruiter stats & analytics
+   */
+  getRecruiterStats: async () => {
+    const response = await jobApi.get("/job/stats");
+    return response.data;
+  },
 };
 
 export default jobService;

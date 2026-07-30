@@ -51,6 +51,10 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     try {
       const data = await authService.register(userData);
+      if (data.success && data.user && data.token) {
+        setUser(data.user);
+        setToken(data.token);
+      }
       return data;
     } catch (error) {
       const message =
@@ -74,6 +78,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUser = (updatedUserData) => {
+    setUser((prev) => {
+      const newUser = typeof updatedUserData === "function" ? updatedUserData(prev) : { ...prev, ...updatedUserData };
+      localStorage.setItem("jobhub_user", JSON.stringify(newUser));
+      return newUser;
+    });
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -84,6 +96,7 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
+        updateUser,
       }}
     >
       {children}

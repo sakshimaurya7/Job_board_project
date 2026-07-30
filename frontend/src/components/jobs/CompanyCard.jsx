@@ -52,7 +52,7 @@ export const CompanyCard = ({ company }) => {
               <span>Website</span>
             </div>
             {/* href conditional rendering is used for the purpose like some websites will be saved as google.com so it will add the https: automatically and the website link will become https:google.com
-              rel = "noopener noreferrer" is used to improve security and prevent the opened page from accessing the original page through the browser.
+              rel = "noopener noreferrer" is used to improve security and prevent the opened page from accessing the original page through the browser.f
             */}
             <a
               href={website.startsWith("http") ? website : `https://${website}`}

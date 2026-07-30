@@ -6,6 +6,7 @@ import {
   getAdminJobs,
   updateJob,
   deleteJob,
+  getRecruiterStats,
 } from '../controllers/job.controller.js';
 import { isAuthenticated, authorizeRoles } from '../middleware/auth.middleware.js';
 
@@ -21,6 +22,18 @@ router.post(
   isAuthenticated,
   authorizeRoles('recruiter', 'admin'),
   postJob
+);
+
+/**
+ * @route   GET /api/v1/job/stats
+ * @desc    Get recruiter dashboard stats and summary analytics
+ * @access  Private (Recruiter, Admin)
+ */
+router.get(
+  '/stats',
+  isAuthenticated,
+  authorizeRoles('recruiter', 'admin'),
+  getRecruiterStats
 );
 
 /**

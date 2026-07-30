@@ -27,6 +27,52 @@ const companySchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    banner: {
+      type: String,
+      default: '',
+    },
+    tagline: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    industry: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    phone: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    companySize: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    founded: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    headquarters: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    benefits: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+    socialLinks: {
+      linkedin: { type: String, default: '' },
+      twitter: { type: String, default: '' },
+      facebook: { type: String, default: '' },
+      github: { type: String, default: '' },
+    },
     // Recruiter who owns/manages this company
     userId: {
       type: mongoose.Schema.Types.ObjectId,

@@ -6,7 +6,23 @@ import User from '../models/user.model.js';
  */
 const registerCompany = async (req, res) => {
   try {
-    const { companyName, name, description, website, location, logo } = req.body;
+    const {
+      companyName,
+      name,
+      description,
+      website,
+      location,
+      logo,
+      banner,
+      tagline,
+      industry,
+      phone,
+      companySize,
+      founded,
+      headquarters,
+      benefits,
+      socialLinks,
+    } = req.body;
     const nameToUse = (companyName || name || '').trim();
 
     if (!nameToUse) {
@@ -25,12 +41,28 @@ const registerCompany = async (req, res) => {
       });
     }
 
+    let parsedBenefits = [];
+    if (Array.isArray(benefits)) {
+      parsedBenefits = benefits.map((b) => String(b).trim()).filter(Boolean);
+    } else if (typeof benefits === 'string') {
+      parsedBenefits = benefits.split(',').map((b) => b.trim()).filter(Boolean);
+    }
+
     const company = await Company.create({
       name: nameToUse,
       description: description || '',
       website: website || '',
       location: location || '',
       logo: logo || '',
+      banner: banner || '',
+      tagline: tagline || '',
+      industry: industry || '',
+      phone: phone || '',
+      companySize: companySize || '',
+      founded: founded || '',
+      headquarters: headquarters || '',
+      benefits: parsedBenefits,
+      socialLinks: socialLinks || {},
       userId: req.user._id || req.user.id,
     });
 
@@ -116,7 +148,22 @@ const getCompanyById = async (req, res) => {
  */
 const updateCompany = async (req, res) => {
   try {
-    const { name, description, website, location, logo } = req.body;
+    const {
+      name,
+      description,
+      website,
+      location,
+      logo,
+      banner,
+      tagline,
+      industry,
+      phone,
+      companySize,
+      founded,
+      headquarters,
+      benefits,
+      socialLinks,
+    } = req.body;
     const companyId = req.params.id;
 
     let company = await Company.findById(companyId);
@@ -143,6 +190,28 @@ const updateCompany = async (req, res) => {
     if (website !== undefined) updateData.website = website;
     if (location !== undefined) updateData.location = location;
     if (logo !== undefined) updateData.logo = logo;
+    if (banner !== undefined) updateData.banner = banner;
+    if (tagline !== undefined) updateData.tagline = tagline;
+    if (industry !== undefined) updateData.industry = industry;
+    if (phone !== undefined) updateData.phone = phone;
+    if (companySize !== undefined) updateData.companySize = companySize;
+    if (founded !== undefined) updateData.founded = founded;
+    if (headquarters !== undefined) updateData.headquarters = headquarters;
+
+    if (benefits !== undefined) {
+      if (Array.isArray(benefits)) {
+        updateData.benefits = benefits.map((b) => String(b).trim()).filter(Boolean);
+      } else if (typeof benefits === 'string') {
+        updateData.benefits = benefits.split(',').map((b) => b.trim()).filter(Boolean);
+      }
+    }
+
+    if (socialLinks !== undefined) {
+      updateData.socialLinks = {
+        ...company.socialLinks,
+        ...socialLinks,
+      };
+    }
 
     company = await Company.findByIdAndUpdate(companyId, updateData, {
       new: true,
