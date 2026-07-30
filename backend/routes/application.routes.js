@@ -4,6 +4,7 @@ import {
   getAppliedJobs,
   getApplicants,
   updateStatus,
+  withdrawApplication,
 } from '../controllers/application.controller.js';
 import { isAuthenticated, authorizeRoles } from '../middleware/auth.middleware.js';
 
@@ -42,10 +43,38 @@ router.get(
 );
 
 /**
+ * @route   DELETE /api/v1/application/withdraw/:id
+ * @route   DELETE /api/v1/application/:id
+ * @desc    Job seeker withdraws a pending application
+ * @access  Private (Job Seeker)
+ */
+router.delete(
+  '/withdraw/:id',
+  isAuthenticated,
+  authorizeRoles('jobseeker'),
+  withdrawApplication
+);
+
+router.delete(
+  '/:id/withdraw',
+  isAuthenticated,
+  authorizeRoles('jobseeker'),
+  withdrawApplication
+);
+
+/**
+ * @route   GET /api/v1/application/applicants
  * @route   GET /api/v1/application/:id/applicants
- * @desc    Get all applicants for a specific job ID
+ * @desc    Get all applicants for a specific job ID or all recruiter jobs
  * @access  Private (Recruiter, Admin)
  */
+router.get(
+  '/applicants',
+  isAuthenticated,
+  authorizeRoles('recruiter', 'admin'),
+  getApplicants
+);
+
 router.get(
   '/:id/applicants',
   isAuthenticated,
@@ -56,7 +85,7 @@ router.get(
 /**
  * @route   POST /api/v1/application/status/:id/update
  * @route   PUT /api/v1/application/status/:id/update
- * @desc    Update application status (pending, accepted, rejected)
+ * @desc    Update application status (pending, reviewed, interview, accepted, selected, rejected)
  * @access  Private (Recruiter, Admin)
  */
 router.post(
@@ -74,3 +103,4 @@ router.put(
 );
 
 export default router;
+

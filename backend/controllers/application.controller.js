@@ -95,31 +95,69 @@ export const getAppliedJobs = async (req, res) => {
 };
 
 /**
- * Get all applicants/applications for a specific job (Recruiter / Admin)
+ * Get applicants for a specific job OR all jobs created by recruiter
  */
 export const getApplicants = async (req, res) => {
   try {
     const jobId = req.params.id;
+    const userId = req.user._id || req.user.id;
 
-    const job = await Job.findById(jobId).populate({
-      path: 'applications',
-      options: { sort: { createdAt: -1 } },
-      populate: {
-        path: 'applicant',
-        select: 'fullname email phoneNumber profile',
-      },
-    });
+    if (jobId && jobId !== 'all') {
+      const job = await Job.findById(jobId).populate({
+        path: 'applications',
+        options: { sort: { createdAt: -1 } },
+        populate: [
+          {
+            path: 'applicant',
+            select: 'fullname email phoneNumber profile',
+          },
+          {
+            path: 'job',
+            populate: {
+              path: 'company',
+              select: 'name logo location',
+            },
+          },
+        ],
+      });
 
-    if (!job) {
-      return res.status(404).json({
-        success: false,
-        message: 'Job listing not found.',
+      if (!job) {
+        return res.status(404).json({
+          success: false,
+          message: 'Job listing not found.',
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        job,
+        applications: job.applications || [],
       });
     }
 
+    // If jobId is 'all' or not specified, fetch all jobs by this recruiter and aggregate their applications
+    const recruiterJobs = await Job.find({ created_by: userId }).select('_id title location jobType company');
+    const jobIds = recruiterJobs.map((j) => j._id);
+
+    const applications = await Application.find({ job: { $in: jobIds } })
+      .sort({ createdAt: -1 })
+      .populate({
+        path: 'applicant',
+        select: 'fullname email phoneNumber profile',
+      })
+      .populate({
+        path: 'job',
+        populate: {
+          path: 'company',
+          select: 'name logo location',
+        },
+      });
+
     return res.status(200).json({
       success: true,
-      job,
+      jobs: recruiterJobs,
+      applications,
+      count: applications.length,
     });
   } catch (error) {
     return res.status(500).json({
@@ -131,7 +169,7 @@ export const getApplicants = async (req, res) => {
 };
 
 /**
- * Update application status (pending, accepted, rejected) (Recruiter / Admin)
+ * Update application status (pending, reviewed, interview, accepted, selected, rejected) (Recruiter / Admin)
  */
 export const updateStatus = async (req, res) => {
   try {
@@ -145,13 +183,13 @@ export const updateStatus = async (req, res) => {
       });
     }
 
-    const validStatuses = ['pending', 'accepted', 'rejected'];
+    const validStatuses = ['pending', 'reviewed', 'interview', 'accepted', 'selected', 'rejected'];
     const normalizedStatus = status.toLowerCase();
 
     if (!validStatuses.includes(normalizedStatus)) {
       return res.status(400).json({
         success: false,
-        message: `Invalid status '${status}'. Allowed values: pending, accepted, rejected`,
+        message: `Invalid status '${status}'. Allowed values: ${validStatuses.join(', ')}`,
       });
     }
 
@@ -179,3 +217,50 @@ export const updateStatus = async (req, res) => {
     });
   }
 };
+
+/**
+ * Job seeker withdraws/deletes a pending application
+ */
+export const withdrawApplication = async (req, res) => {
+  try {
+    const userId = req.user._id || req.user.id;
+    const applicationId = req.params.id;
+
+    const application = await Application.findById(applicationId);
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: 'Application not found.',
+      });
+    }
+
+    // Ensure only the applicant can withdraw their own application
+    if (application.applicant.toString() !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'You are not authorized to withdraw this application.',
+      });
+    }
+
+    // Remove application ID from Job's applications array
+    await Job.findByIdAndUpdate(application.job, {
+      $pull: { applications: applicationId },
+    });
+
+    // Delete application document
+    await Application.findByIdAndDelete(applicationId);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Application withdrawn successfully.',
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to withdraw application.',
+      error: error.message,
+    });
+  }
+};
+

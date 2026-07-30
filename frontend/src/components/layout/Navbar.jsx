@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Briefcase, Menu, X, ChevronRight, LogOut, User as UserIcon } from "lucide-react";
+import { Briefcase, Menu, X, ChevronRight, LogOut, User as UserIcon, LayoutDashboard, ClipboardList } from "lucide-react";
 import { Button } from "../ui/button";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -17,6 +17,18 @@ export function Navbar() {
     { name: "About", path: "/about" },
     { name: "Contact", path: "/contact" },
   ];
+
+  // Role-based portal link shown only when authenticated
+  const getPortalLink = () => {
+    if (!isAuthenticated || !user) return null;
+    const role = (user.role || "").toLowerCase();
+    if (role === "recruiter" || role === "admin") {
+      return { name: "Manage Applicants", path: "/manage-applications", icon: LayoutDashboard };
+    }
+    return { name: "My Applications", path: "/applications", icon: ClipboardList };
+  };
+
+  const portalLink = getPortalLink();
 
   const isActive = (path) => {
     if (path === "/" && location.pathname === "/") return true;
@@ -63,6 +75,29 @@ export function Navbar() {
               </Link>
             );
           })}
+
+          {/* Portal link for authenticated users */}
+          {portalLink && (() => {
+            const active = isActive(portalLink.path);
+            const PortalIcon = portalLink.icon;
+            return (
+              <Link
+                key={portalLink.name}
+                to={portalLink.path}
+                className={`flex items-center gap-1.5 text-base font-semibold transition-colors duration-200 relative py-1 ${
+                  active
+                    ? "text-primary font-bold"
+                    : "text-text-secondary hover:text-primary"
+                }`}
+              >
+                <PortalIcon className="w-4 h-4" />
+                {portalLink.name}
+                {active && (
+                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-full" />
+                )}
+              </Link>
+            );
+          })()}
         </nav>
 
         {/* Action Buttons (Login / Register or User Profile) */}
@@ -78,6 +113,18 @@ export function Navbar() {
                   {user.role === "recruiter" ? "Employer" : "Seeker"}
                 </span>
               </div>
+              {/* Quick Portal shortcut button */}
+              {portalLink && (
+                <Link to={portalLink.path}>
+                  <Button
+                    variant="secondary"
+                    className="h-10 px-3.5 text-sm font-semibold gap-1.5"
+                  >
+                    {React.createElement(portalLink.icon, { className: "w-4 h-4" })}
+                    {portalLink.name}
+                  </Button>
+                </Link>
+              )}
               <Button
                 variant="outline"
                 onClick={handleLogout}
@@ -151,9 +198,29 @@ export function Navbar() {
                     <span className="font-semibold text-text">{user.fullname}</span>
                   </div>
                   <span className="text-xs uppercase font-bold bg-primary text-white px-2 py-0.5 rounded-md">
-                    {user.role}
+                    {user.role === "recruiter" ? "Employer" : "Seeker"}
                   </span>
                 </div>
+
+                {/* Mobile portal quick link */}
+                {portalLink && (
+                  <Link
+                    to={portalLink.path}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center justify-between p-3 rounded-xl font-semibold text-base transition-colors ${
+                      isActive(portalLink.path)
+                        ? "bg-primary/10 text-primary border border-primary/30"
+                        : "text-text hover:bg-section border border-border"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      {React.createElement(portalLink.icon, { className: "w-4 h-4 text-primary" })}
+                      <span>{portalLink.name}</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-text-secondary" />
+                  </Link>
+                )}
+
                 <Button
                   variant="outline"
                   onClick={() => {

@@ -13,6 +13,9 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Applications from "./pages/Applications";
+import ManageApplications from "./pages/ManageApplications";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 
 export default function App() {
@@ -29,6 +32,22 @@ export default function App() {
               <Route path="/jobs/:id" element={<JobDetails />} />
               <Route path="/companies" element={<Companies />} />
               <Route path="/companies/:id" element={<CompanyDetails />} />
+              <Route
+                path="/applications"
+                element={
+                  <ProtectedRoute allowedRoles={["jobseeker"]}>
+                    <Applications />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/manage-applications"
+                element={
+                  <ProtectedRoute allowedRoles={["recruiter", "admin"]}>
+                    <ManageApplications />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/login" element={<Login />} />
