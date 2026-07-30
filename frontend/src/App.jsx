@@ -14,6 +14,7 @@ import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Applications from "./pages/Applications";
+import ProfilePage from "./pages/ProfilePage";
 import ManageApplications from "./pages/ManageApplications";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { RecruiterRoute } from "./components/auth/RecruiterRoute";
@@ -65,6 +66,14 @@ function AppContent() {
             element={
               <ProtectedRoute allowedRoles={["jobseeker"]}>
                 <Applications />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute allowedRoles={["jobseeker"]}>
+                <ProfilePage />
               </ProtectedRoute>
             }
           />

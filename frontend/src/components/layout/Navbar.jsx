@@ -145,7 +145,7 @@ const ProfileDropdown = React.memo(({ user, isRecruiter, hasCompany, onLogout })
     return [
       { label: "My Applications", icon: ClipboardList, path: "/applications" },
       { label: "Saved Jobs", icon: Bookmark, disabled: true, comingSoon: true },
-      { label: "Profile Settings", icon: Settings, path: "/profile/settings", disabled: true, comingSoon: true },
+      { label: "Profile Settings", icon: Settings, path: "/profile" },
     ];
   }, [isRecruiter, hasCompany]);
 
@@ -252,7 +252,7 @@ const MobileDrawer = React.memo(({ open, onClose, user, isAuthenticated, isRecru
   const seekerAccountLinks = [
     { name: "My Applications", path: "/applications", icon: ClipboardList },
     { name: "Saved Jobs", disabled: true, icon: Bookmark, comingSoon: true },
-    { name: "Profile", disabled: true, icon: UserIcon, comingSoon: true },
+    { name: "Profile Settings", path: "/profile", icon: Settings },
   ];
 
   const recruiterAccountLinks = hasCompany
