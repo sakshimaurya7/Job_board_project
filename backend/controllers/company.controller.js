@@ -56,18 +56,18 @@ const registerCompany = async (req, res) => {
 };
 
 /**
- * Get companies created by logged in recruiter (or all companies for admin)
+ * Get companies (all companies for candidate discovery or recruiter's own companies when myCompanies=true)
  */
 const getCompanies = async (req, res) => {
   try {
-    const userId = req.user._id || req.user.id;
-    let query = { userId };
+    const userId = req.user?._id || req.user?.id;
+    let query = {};
 
-    if (req.user.role === 'admin') {
-      query = {};
+    if (req.user?.role === 'recruiter' && req.query.myCompanies === 'true') {
+      query = { userId };
     }
 
-    const companies = await Company.find(query).sort({ createdAt: -1 });
+    const companies = await Company.find(query).populate('jobs').sort({ createdAt: -1 });
 
     return res.status(200).json({
       success: true,
