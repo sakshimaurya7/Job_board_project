@@ -74,13 +74,11 @@ export function DashboardCards({ stats = {}, activeFilter, onSelectFilter }) {
           <div
             key={card.id}
             onClick={() => card.filterKey && onSelectFilter && onSelectFilter(card.filterKey)}
-            className={`relative group p-5 bg-surface rounded-2xl border transition-all duration-300 ${
-              card.filterKey ? "cursor-pointer hover:-translate-y-1 hover:shadow-soft-lg" : ""
-            } ${
-              isSelected
+            className={`relative group p-5 bg-surface rounded-2xl border transition-all duration-300 ${card.filterKey ? "cursor-pointer hover:-translate-y-1 hover:shadow-soft-lg" : ""
+              } ${isSelected
                 ? "border-primary ring-2 ring-primary/20 shadow-md bg-section"
                 : "border-border hover:border-primary/40"
-            }`}
+              }`}
           >
             <div className="flex items-start justify-between">
               <div>
