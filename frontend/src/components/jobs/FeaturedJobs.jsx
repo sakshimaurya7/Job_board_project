@@ -5,6 +5,7 @@ import { Card } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Avatar } from "../ui/avatar";
 import { formatSalary } from "../../utils/formatters";
+import { getCompanyLogo } from "../../utils/imagePlaceholder";
 
 export const FeaturedJobs = ({ jobs = [] }) => {
   if (!jobs || jobs.length === 0) return null;
@@ -24,7 +25,7 @@ export const FeaturedJobs = ({ jobs = [] }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {featuredList.map((job) => {
           const companyName = job.company?.name || "Company";
-          const companyLogo = job.company?.logo;
+          const companyLogo = getCompanyLogo(job.company?.logo);
           const salaryText = formatSalary(job.salary);
 
           return (

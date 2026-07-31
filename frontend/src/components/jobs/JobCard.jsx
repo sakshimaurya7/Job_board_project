@@ -15,6 +15,7 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Avatar } from "../ui/avatar";
 import { formatSalary, formatDate, formatExperience } from "../../utils/formatters";
+import { getCompanyLogo } from "../../utils/imagePlaceholder";
 
 export const JobCard = ({ job, isApplied = false, onApply }) => {
   const [bookmarked, setBookmarked] = useState(false);
@@ -48,7 +49,7 @@ export const JobCard = ({ job, isApplied = false, onApply }) => {
   };
 
   const companyName = job.company?.name || "Company";
-  const companyLogo = job.company?.logo;
+  const companyLogo = getCompanyLogo(job.company?.logo);
   const location = job.location || "Remote";
   const salaryText = formatSalary(job.salary);
   const experienceText = formatExperience(job.experienceLevel);

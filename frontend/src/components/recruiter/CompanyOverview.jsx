@@ -38,21 +38,22 @@ const FacebookIcon = (props) => (
   </svg>
 );
 import { Button } from "../ui/button";
+import { getCompanyLogo, getCompanyBanner } from "../../utils/imagePlaceholder";
 
 export function CompanyOverview({ company, onEditClick }) {
   if (!company) return null;
 
-  const defaultBanner =
-    "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80";
+  const displayBanner = getCompanyBanner(company.banner || company.coverImage);
+  const displayLogo = getCompanyLogo(company.logo);
 
   return (
     <div className="space-y-6">
       {/* Banner & Logo Card */}
       <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-xs relative">
         {/* Banner Image */}
-        <div className="h-48 sm:h-64 w-full relative bg-gradient-to-r from-primary/20 via-primary/10 to-amber-500/20 overflow-hidden">
+        <div className="h-48 sm:h-64 w-full relative bg-slate-900 overflow-hidden">
           <img
-            src={company.banner || defaultBanner}
+            src={displayBanner}
             alt={company.name}
             className="w-full h-full object-cover"
           />
@@ -64,15 +65,11 @@ export function CompanyOverview({ company, onEditClick }) {
           <div className="flex flex-col sm:flex-row items-start sm:items-end gap-5">
             {/* Logo */}
             <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl bg-surface border-4 border-surface shadow-soft flex items-center justify-center font-bold text-3xl text-primary overflow-hidden shrink-0">
-              {company.logo ? (
-                <img
-                  src={company.logo}
-                  alt={company.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <Building2 className="w-12 h-12 text-primary" />
-              )}
+              <img
+                src={displayLogo}
+                alt={company.name}
+                className="w-full h-full object-cover"
+              />
             </div>
 
             {/* Title & Tagline */}

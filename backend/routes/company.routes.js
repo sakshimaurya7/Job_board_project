@@ -7,18 +7,21 @@ import {
   deleteCompany,
 } from '../controllers/company.controller.js';
 import { isAuthenticated, authorizeRoles } from '../middleware/auth.middleware.js';
+import { uploadCompanyImages, handleMulterErrors } from '../middleware/multer.middleware.js';
 
 const router = express.Router();
 
 /**
  * @route   POST /api/v1/company/register
- * @desc    Register / create a new company
+ * @desc    Register / create a new company with optional logo & banner uploads
  * @access  Private (Recruiter, Admin)
  */
 router.post(
   '/register',
   isAuthenticated,
   authorizeRoles('recruiter', 'admin'),
+  uploadCompanyImages,
+  handleMulterErrors,
   registerCompany
 );
 
@@ -38,13 +41,15 @@ router.get('/get/:id', isAuthenticated, getCompanyById);
 
 /**
  * @route   PUT /api/v1/company/update/:id
- * @desc    Update company details by ID
+ * @desc    Update company details & images by ID
  * @access  Private (Recruiter, Admin)
  */
 router.put(
   '/update/:id',
   isAuthenticated,
   authorizeRoles('recruiter', 'admin'),
+  uploadCompanyImages,
+  handleMulterErrors,
   updateCompany
 );
 

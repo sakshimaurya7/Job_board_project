@@ -1,8 +1,23 @@
 import Company from '../models/company.model.js';
 import User from '../models/user.model.js';
+import { uploadToCloudinary, deleteFromCloudinary } from '../config/cloudinary.js';
 
 /**
- * Register/Create a new Company
+ * Helper to safely parse JSON strings or return original object
+ */
+const safeParseJSON = (value) => {
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value);
+    } catch (e) {
+      return value;
+    }
+  }
+  return value;
+};
+
+/**
+ * Register/Create a new Company with optional image uploads
  */
 const registerCompany = async (req, res) => {
   try {
@@ -14,6 +29,7 @@ const registerCompany = async (req, res) => {
       location,
       logo,
       banner,
+      coverImage,
       tagline,
       industry,
       phone,
@@ -23,6 +39,7 @@ const registerCompany = async (req, res) => {
       benefits,
       socialLinks,
     } = req.body;
+
     const nameToUse = (companyName || name || '').trim();
 
     if (!nameToUse) {
@@ -42,10 +59,34 @@ const registerCompany = async (req, res) => {
     }
 
     let parsedBenefits = [];
-    if (Array.isArray(benefits)) {
-      parsedBenefits = benefits.map((b) => String(b).trim()).filter(Boolean);
-    } else if (typeof benefits === 'string') {
-      parsedBenefits = benefits.split(',').map((b) => b.trim()).filter(Boolean);
+    const rawBenefits = safeParseJSON(benefits);
+    if (Array.isArray(rawBenefits)) {
+      parsedBenefits = rawBenefits.map((b) => String(b).trim()).filter(Boolean);
+    } else if (typeof rawBenefits === 'string') {
+      parsedBenefits = rawBenefits.split(',').map((b) => b.trim()).filter(Boolean);
+    }
+
+    let parsedSocialLinks = safeParseJSON(socialLinks) || {};
+
+    let logoUrl = logo || '';
+    let logoPublicId = '';
+    let bannerUrl = banner || coverImage || '';
+    let bannerPublicId = '';
+
+    // Process Logo file upload if present
+    const logoFile = req.files?.logo?.[0];
+    if (logoFile) {
+      const uploadResult = await uploadToCloudinary(logoFile.buffer, 'jobsphere/logos');
+      logoUrl = uploadResult.url;
+      logoPublicId = uploadResult.public_id;
+    }
+
+    // Process Banner / Cover file upload if present
+    const bannerFile = req.files?.banner?.[0] || req.files?.coverImage?.[0];
+    if (bannerFile) {
+      const uploadResult = await uploadToCloudinary(bannerFile.buffer, 'jobsphere/banners');
+      bannerUrl = uploadResult.url;
+      bannerPublicId = uploadResult.public_id;
     }
 
     const company = await Company.create({
@@ -53,8 +94,10 @@ const registerCompany = async (req, res) => {
       description: description || '',
       website: website || '',
       location: location || '',
-      logo: logo || '',
-      banner: banner || '',
+      logo: logoUrl,
+      logoPublicId,
+      banner: bannerUrl,
+      bannerPublicId,
       tagline: tagline || '',
       industry: industry || '',
       phone: phone || '',
@@ -62,7 +105,7 @@ const registerCompany = async (req, res) => {
       founded: founded || '',
       headquarters: headquarters || '',
       benefits: parsedBenefits,
-      socialLinks: socialLinks || {},
+      socialLinks: parsedSocialLinks,
       userId: req.user._id || req.user.id,
     });
 
@@ -79,6 +122,7 @@ const registerCompany = async (req, res) => {
       company,
     });
   } catch (error) {
+    console.error('Error in registerCompany:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to register company.',
@@ -144,28 +188,11 @@ const getCompanyById = async (req, res) => {
 };
 
 /**
- * Update company information
+ * Update company information with image upload/replacement support
  */
 const updateCompany = async (req, res) => {
   try {
-    const {
-      name,
-      description,
-      website,
-      location,
-      logo,
-      banner,
-      tagline,
-      industry,
-      phone,
-      companySize,
-      founded,
-      headquarters,
-      benefits,
-      socialLinks,
-    } = req.body;
     const companyId = req.params.id;
-
     let company = await Company.findById(companyId);
 
     if (!company) {
@@ -184,13 +211,31 @@ const updateCompany = async (req, res) => {
       });
     }
 
+    const {
+      name,
+      description,
+      website,
+      location,
+      tagline,
+      industry,
+      phone,
+      companySize,
+      founded,
+      headquarters,
+      benefits,
+      socialLinks,
+      removeLogo,
+      removeBanner,
+      logo: bodyLogo,
+      banner: bodyBanner,
+      coverImage: bodyCoverImage,
+    } = req.body;
+
     const updateData = {};
     if (name) updateData.name = name.trim();
     if (description !== undefined) updateData.description = description;
     if (website !== undefined) updateData.website = website;
     if (location !== undefined) updateData.location = location;
-    if (logo !== undefined) updateData.logo = logo;
-    if (banner !== undefined) updateData.banner = banner;
     if (tagline !== undefined) updateData.tagline = tagline;
     if (industry !== undefined) updateData.industry = industry;
     if (phone !== undefined) updateData.phone = phone;
@@ -199,18 +244,61 @@ const updateCompany = async (req, res) => {
     if (headquarters !== undefined) updateData.headquarters = headquarters;
 
     if (benefits !== undefined) {
-      if (Array.isArray(benefits)) {
-        updateData.benefits = benefits.map((b) => String(b).trim()).filter(Boolean);
-      } else if (typeof benefits === 'string') {
-        updateData.benefits = benefits.split(',').map((b) => b.trim()).filter(Boolean);
+      const rawBenefits = safeParseJSON(benefits);
+      if (Array.isArray(rawBenefits)) {
+        updateData.benefits = rawBenefits.map((b) => String(b).trim()).filter(Boolean);
+      } else if (typeof rawBenefits === 'string') {
+        updateData.benefits = rawBenefits.split(',').map((b) => b.trim()).filter(Boolean);
       }
     }
 
     if (socialLinks !== undefined) {
+      const parsedSocial = safeParseJSON(socialLinks);
       updateData.socialLinks = {
         ...company.socialLinks,
-        ...socialLinks,
+        ...(typeof parsedSocial === 'object' ? parsedSocial : {}),
       };
+    }
+
+    // --- LOGO PROCESSING ---
+    const logoFile = req.files?.logo?.[0];
+    if (logoFile) {
+      // Delete old logo from Cloudinary if replacing
+      if (company.logoPublicId) {
+        await deleteFromCloudinary(company.logoPublicId);
+      }
+      const uploadResult = await uploadToCloudinary(logoFile.buffer, 'jobsphere/logos');
+      updateData.logo = uploadResult.url;
+      updateData.logoPublicId = uploadResult.public_id;
+    } else if (removeLogo === 'true' || removeLogo === true || bodyLogo === '') {
+      if (company.logoPublicId) {
+        await deleteFromCloudinary(company.logoPublicId);
+      }
+      updateData.logo = '';
+      updateData.logoPublicId = '';
+    }
+
+    // --- BANNER / COVER IMAGE PROCESSING ---
+    const bannerFile = req.files?.banner?.[0] || req.files?.coverImage?.[0];
+    if (bannerFile) {
+      // Delete old banner from Cloudinary if replacing
+      if (company.bannerPublicId) {
+        await deleteFromCloudinary(company.bannerPublicId);
+      }
+      const uploadResult = await uploadToCloudinary(bannerFile.buffer, 'jobsphere/banners');
+      updateData.banner = uploadResult.url;
+      updateData.bannerPublicId = uploadResult.public_id;
+    } else if (
+      removeBanner === 'true' ||
+      removeBanner === true ||
+      bodyBanner === '' ||
+      bodyCoverImage === ''
+    ) {
+      if (company.bannerPublicId) {
+        await deleteFromCloudinary(company.bannerPublicId);
+      }
+      updateData.banner = '';
+      updateData.bannerPublicId = '';
     }
 
     company = await Company.findByIdAndUpdate(companyId, updateData, {
@@ -224,6 +312,7 @@ const updateCompany = async (req, res) => {
       company,
     });
   } catch (error) {
+    console.error('Error updating company:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to update company information.',
@@ -256,6 +345,14 @@ const deleteCompany = async (req, res) => {
       });
     }
 
+    // Cleanup images from Cloudinary if present
+    if (company.logoPublicId) {
+      await deleteFromCloudinary(company.logoPublicId);
+    }
+    if (company.bannerPublicId) {
+      await deleteFromCloudinary(company.bannerPublicId);
+    }
+
     await Company.findByIdAndDelete(companyId);
 
     return res.status(200).json({
@@ -271,4 +368,4 @@ const deleteCompany = async (req, res) => {
   }
 };
 
-export { registerCompany, getCompanies, getCompanyById, updateCompany, deleteCompany }
+export { registerCompany, getCompanies, getCompanyById, updateCompany, deleteCompany };

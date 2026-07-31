@@ -6,7 +6,7 @@ import {
   Phone,
   Users,
   Calendar,
-  Image,
+  Image as ImageIcon,
   Sparkles,
   Save,
   Loader2,
@@ -14,7 +14,7 @@ import {
   Link2,
 } from "lucide-react";
 
-// Inline SVG social icons (lucide-react doesn't export Facebook/Linkedin/Twitter/Github)
+// Inline SVG social icons
 const LinkedinIcon = (props) => (
   <svg viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
@@ -38,10 +38,12 @@ const FacebookIcon = (props) => (
     <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
   </svg>
 );
+
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Select } from "../ui/select";
 import { Label } from "../ui/label";
+import { ImageUploadCard } from "../common/ImageUploadCard";
 
 export function CompanyForm({ initialValues = {}, onSubmit, loading, isSetup = false }) {
   const [formData, setFormData] = useState({
@@ -55,7 +57,7 @@ export function CompanyForm({ initialValues = {}, onSubmit, loading, isSetup = f
     companySize: initialValues.companySize || "11-50 employees",
     founded: initialValues.founded || "",
     logo: initialValues.logo || "",
-    banner: initialValues.banner || "",
+    banner: initialValues.banner || initialValues.coverImage || "",
     description: initialValues.description || "",
     benefits: Array.isArray(initialValues.benefits)
       ? initialValues.benefits.join(", ")
@@ -67,6 +69,12 @@ export function CompanyForm({ initialValues = {}, onSubmit, loading, isSetup = f
       github: initialValues.socialLinks?.github || "",
     },
   });
+
+  // Selected image File objects
+  const [logoFile, setLogoFile] = useState(null);
+  const [bannerFile, setBannerFile] = useState(null);
+  const [removeLogo, setRemoveLogo] = useState(false);
+  const [removeBanner, setRemoveBanner] = useState(false);
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({
@@ -87,14 +95,45 @@ export function CompanyForm({ initialValues = {}, onSubmit, loading, isSetup = f
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const formattedData = {
-      ...formData,
-      companyName: formData.name,
-      benefits: formData.benefits
-        ? formData.benefits.split(",").map((b) => b.trim()).filter(Boolean)
-        : [],
-    };
-    onSubmit(formattedData);
+
+    const benefitsArray = formData.benefits
+      ? formData.benefits.split(",").map((b) => b.trim()).filter(Boolean)
+      : [];
+
+    const data = new FormData();
+    data.append("name", formData.name);
+    data.append("companyName", formData.name);
+    data.append("tagline", formData.tagline);
+    data.append("industry", formData.industry);
+    data.append("website", formData.website);
+    data.append("phone", formData.phone);
+    data.append("location", formData.location);
+    data.append("headquarters", formData.headquarters);
+    data.append("companySize", formData.companySize);
+    data.append("founded", formData.founded);
+    data.append("description", formData.description);
+    data.append("benefits", JSON.stringify(benefitsArray));
+    data.append("socialLinks", JSON.stringify(formData.socialLinks));
+
+    // Handle logo file upload or removal
+    if (logoFile) {
+      data.append("logo", logoFile);
+    } else if (removeLogo) {
+      data.append("removeLogo", "true");
+    } else {
+      data.append("logo", formData.logo);
+    }
+
+    // Handle banner file upload or removal
+    if (bannerFile) {
+      data.append("banner", bannerFile);
+    } else if (removeBanner) {
+      data.append("removeBanner", "true");
+    } else {
+      data.append("banner", formData.banner);
+    }
+
+    onSubmit(data);
   };
 
   return (
@@ -172,6 +211,55 @@ export function CompanyForm({ initialValues = {}, onSubmit, loading, isSetup = f
         </div>
       </div>
 
+      {/* Brand Media Section: Logo Upload & Banner Upload Cards */}
+      <div className="p-6 bg-surface rounded-2xl border border-border space-y-6">
+        <div className="flex items-center gap-3 border-b border-border pb-4">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
+            <ImageIcon className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-text">Company Branding & Images</h3>
+            <p className="text-xs text-text-secondary">
+              Upload your official company logo and cover banner image
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Logo Upload Card */}
+          <ImageUploadCard
+            type="logo"
+            label="Company Logo"
+            description="Displayed on job cards, listings, and headers. Accepts PNG, JPG, WEBP (Max 5MB)."
+            currentImageUrl={removeLogo ? "" : formData.logo}
+            onFileSelect={(file) => {
+              setLogoFile(file);
+              setRemoveLogo(false);
+            }}
+            onImageRemove={() => {
+              setLogoFile(null);
+              setRemoveLogo(true);
+            }}
+          />
+
+          {/* Cover Banner Upload Card */}
+          <ImageUploadCard
+            type="banner"
+            label="Company Cover Banner"
+            description="Displayed at top of Company Details & Overview page. Accepts PNG, JPG, WEBP (Max 5MB)."
+            currentImageUrl={removeBanner ? "" : formData.banner}
+            onFileSelect={(file) => {
+              setBannerFile(file);
+              setRemoveBanner(false);
+            }}
+            onImageRemove={() => {
+              setBannerFile(null);
+              setRemoveBanner(true);
+            }}
+          />
+        </div>
+      </div>
+
       {/* Contact & Location Section */}
       <div className="p-6 bg-surface rounded-2xl border border-border space-y-6">
         <div className="flex items-center gap-3 border-b border-border pb-4">
@@ -241,64 +329,6 @@ export function CompanyForm({ initialValues = {}, onSubmit, loading, isSetup = f
               placeholder="e.g. 2018"
               icon={Calendar}
             />
-          </div>
-        </div>
-      </div>
-
-      {/* Brand Media Section (Logo & Banner) */}
-      <div className="p-6 bg-surface rounded-2xl border border-border space-y-6">
-        <div className="flex items-center gap-3 border-b border-border pb-4">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
-            <Image className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-text">Branding & Images</h3>
-            <p className="text-xs text-text-secondary">Company logo and profile banner URLs</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* Logo URL */}
-          <div className="space-y-2">
-            <Label>Company Logo Image URL</Label>
-            <Input
-              type="url"
-              value={formData.logo}
-              onChange={(e) => handleChange("logo", e.target.value)}
-              placeholder="https://example.com/logo.png"
-              icon={Image}
-            />
-            {formData.logo && (
-              <div className="mt-2 flex items-center gap-3 p-2.5 bg-section rounded-xl border border-border">
-                <img
-                  src={formData.logo}
-                  alt="Logo preview"
-                  className="w-10 h-10 object-cover rounded-lg border"
-                />
-                <span className="text-xs font-bold text-text">Logo Preview</span>
-              </div>
-            )}
-          </div>
-
-          {/* Banner URL */}
-          <div className="space-y-2">
-            <Label>Company Cover Banner Image URL</Label>
-            <Input
-              type="url"
-              value={formData.banner}
-              onChange={(e) => handleChange("banner", e.target.value)}
-              placeholder="https://example.com/banner.jpg"
-              icon={Image}
-            />
-            {formData.banner && (
-              <div className="mt-2 h-14 w-full bg-section rounded-xl border border-border overflow-hidden relative">
-                <img
-                  src={formData.banner}
-                  alt="Banner preview"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            )}
           </div>
         </div>
       </div>

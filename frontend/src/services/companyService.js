@@ -43,20 +43,26 @@ export const companyService = {
 
   /**
    * Register a new company for recruiter
-   * @param {Object} companyData 
+   * @param {Object|FormData} companyData 
    */
   registerCompany: async (companyData) => {
-    const response = await companyApi.post("/company/register", companyData);
+    const isFormData = companyData instanceof FormData;
+    const response = await companyApi.post("/company/register", companyData, {
+      headers: isFormData ? { "Content-Type": "multipart/form-data" } : {},
+    });
     return response.data;
   },
 
   /**
    * Update company information by ID
    * @param {string} id 
-   * @param {Object} companyData 
+   * @param {Object|FormData} companyData 
    */
   updateCompany: async (id, companyData) => {
-    const response = await companyApi.put(`/company/update/${id}`, companyData);
+    const isFormData = companyData instanceof FormData;
+    const response = await companyApi.put(`/company/update/${id}`, companyData, {
+      headers: isFormData ? { "Content-Type": "multipart/form-data" } : {},
+    });
     return response.data;
   },
 

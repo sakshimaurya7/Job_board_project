@@ -16,13 +16,16 @@ import {
 import { Avatar } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { toast } from "sonner";
+import { getCompanyLogo, getCompanyBanner } from "../../utils/imagePlaceholder";
 
-export const CompanyHeader = ({ company }) => {
+export const CompanyHeader = ({ company = {} }) => {
   const [following, setFollowing] = useState(false);
 
   const {
-    name,
+    name = "Company",
     logo,
+    banner,
+    coverImage,
     location = "Remote",
     website = "",
     industry = "Technology",
@@ -33,6 +36,9 @@ export const CompanyHeader = ({ company }) => {
     rating = 4.8,
     jobs = [],
   } = company;
+
+  const displayBanner = getCompanyBanner(banner || coverImage);
+  const displayLogo = getCompanyLogo(logo);
 
   const openJobsCount = Array.isArray(jobs) ? jobs.length : 0;
   const displaySize = size || companySize;
@@ -63,26 +69,28 @@ export const CompanyHeader = ({ company }) => {
 
   return (
     <div className="relative bg-surface border border-border rounded-3xl overflow-hidden shadow-soft mb-8">
-      {/* Top Banner Gradient Background */}
-      <div className="h-44 sm:h-56 w-full bg-gradient-to-r from-primary/90 via-secondary to-primary relative overflow-hidden">
-        <div className="absolute inset-0 bg-black/10" />
-        {/* Subtle Background Pattern */}
-        <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-white/10 rounded-full blur-2xl" />
-        <div className="absolute left-10 top-5 w-40 h-40 bg-accent/20 rounded-full blur-xl" />
+      {/* Top Banner Image Background */}
+      <div className="h-48 sm:h-64 w-full relative overflow-hidden bg-slate-900">
+        <img
+          src={displayBanner}
+          alt={`${name} Cover Banner`}
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
       </div>
 
       {/* Main Profile Info Section */}
       <div className="px-6 sm:px-8 pb-8 pt-0 relative">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 -mt-16 sm:-mt-20 mb-6">
-          {/* Company Logo Avatar */}
+          {/* Company Logo Avatar overlapping Banner (LinkedIn Style) */}
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-5 text-center sm:text-left">
-            <div className="relative p-1.5 bg-surface rounded-3xl shadow-soft-lg border-2 border-border">
+            <div className="relative p-1.5 bg-surface rounded-3xl shadow-soft-lg border-4 border-surface shrink-0">
               <Avatar
-                src={logo}
+                src={displayLogo}
                 fallback={name}
                 alt={name}
                 size="xl"
-                className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl"
+                className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl object-cover bg-surface"
               />
               {isVerified && (
                 <div

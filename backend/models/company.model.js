@@ -27,7 +27,15 @@ const companySchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    logoPublicId: {
+      type: String,
+      default: '',
+    },
     banner: {
+      type: String,
+      default: '',
+    },
+    bannerPublicId: {
       type: String,
       default: '',
     },
@@ -100,6 +108,12 @@ companySchema.virtual('jobs', {
   localField: '_id',
   foreignField: 'company',
 });
+
+// Virtual alias for banner as coverImage
+companySchema.virtual('coverImage').get(function () {
+  return this.banner;
+});
+
 
 const Company = mongoose.model('Company', companySchema);
 

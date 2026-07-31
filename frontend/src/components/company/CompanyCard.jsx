@@ -15,6 +15,7 @@ import { Card } from "../ui/card";
 import { Avatar } from "../ui/avatar";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import { getCompanyLogo } from "../../utils/imagePlaceholder";
 
 export const CompanyCard = ({ company }) => {
   const {
@@ -33,6 +34,7 @@ export const CompanyCard = ({ company }) => {
     jobs = [],
   } = company;
 
+  const displayLogo = getCompanyLogo(logo);
   const openJobsCount = Array.isArray(jobs) ? jobs.length : 0;
   const displaySize = size || companySize;
 
@@ -44,7 +46,7 @@ export const CompanyCard = ({ company }) => {
           <div className="flex items-center gap-3.5">
             <div className="relative">
               <Avatar
-                src={logo}
+                src={displayLogo}
                 fallback={name}
                 alt={name}
                 size="lg"
