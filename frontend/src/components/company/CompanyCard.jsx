@@ -42,9 +42,9 @@ export const CompanyCard = ({ company }) => {
     <Card className="group relative flex flex-col justify-between p-6 bg-surface border border-border rounded-2xl shadow-soft hover:shadow-soft-lg hover:border-primary/40 transition-all duration-300 transform hover:-translate-y-1">
       <div>
         {/* Top Bar: Logo, Name, Verified Badge, Rating */}
-        <div className="flex items-start justify-between gap-4 mb-4">
-          <div className="flex items-center gap-3.5">
-            <div className="relative">
+        <div className="flex items-start justify-between gap-4 mb-4 min-w-0">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="relative shrink-0">
               <Avatar
                 src={displayLogo}
                 fallback={name}
@@ -62,21 +62,21 @@ export const CompanyCard = ({ company }) => {
               )}
             </div>
 
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-1.5">
                 <Link
                   to={`/companies/${_id}`}
-                  className="font-bold text-text text-base group-hover:text-primary transition-colors line-clamp-1"
+                  className="font-bold text-text text-base group-hover:text-primary transition-colors truncate block"
                 >
                   {name}
                 </Link>
               </div>
 
-              <div className="flex items-center gap-2 text-xs text-text-secondary mt-0.5">
-                <span className="font-semibold text-primary">{industry}</span>
-                <span>•</span>
-                <div className="flex items-center gap-1">
-                  <MapPin className="w-3 h-3 text-text-secondary" />
+              <div className="flex items-center gap-2 text-xs text-text-secondary mt-0.5 min-w-0 overflow-hidden">
+                <span className="font-semibold text-primary shrink-0">{industry}</span>
+                <span className="shrink-0">•</span>
+                <div className="flex items-center gap-1 min-w-0 overflow-hidden">
+                  <MapPin className="w-3 h-3 text-text-secondary shrink-0" />
                   <span className="truncate max-w-[120px]">{location}</span>
                 </div>
               </div>

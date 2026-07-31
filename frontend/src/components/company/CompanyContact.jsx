@@ -40,11 +40,11 @@ export const CompanyContact = ({ company }) => {
           </div>
         )}
 
-        <div className="flex items-start gap-3 p-3 rounded-2xl bg-section/70 border border-border/50">
+        <div className="flex items-start gap-3 p-3 rounded-2xl bg-section/70 border border-border/50 min-w-0">
           <Mail className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
-          <div>
+          <div className="min-w-0 flex-1">
             <p className="font-bold text-text-secondary">Business Email</p>
-            <a href={`mailto:${email}`} className="text-text hover:text-primary font-semibold truncate block">
+            <a href={`mailto:${email}`} className="text-text hover:text-primary font-semibold truncate block" title={email}>
               {email}
             </a>
           </div>
